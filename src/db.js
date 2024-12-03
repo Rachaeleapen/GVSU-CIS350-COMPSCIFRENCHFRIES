@@ -1,9 +1,24 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Low, AsyncStorage as LowdbAdapter } from 'lowdb';
+import { Low } from 'lowdb';
 
-// Set up the AsyncStorage adapter for lowdb
-const adapter = new LowdbAdapter(AsyncStorage);
+class AsyncStorageAdapter {
+  constructor(key) {
+    this.key = key;
+  }
+
+  async read() {
+    const data = await AsyncStorage.getItem(this.key);
+    return data ? JSON.parse(data) : null;
+  }
+
+  async write(data) {
+    await AsyncStorage.setItem(this.key, JSON.stringify(data));
+  }
+}
+
+const adapter = new AsyncStorageAdapter('db');
 const db = new Low(adapter);
+
 
 /**
  * Initialize the database. This function must be called once when the app starts.
@@ -11,7 +26,7 @@ const db = new Low(adapter);
  */
 export async function initializeDatabase() {
   await db.read();
-  db.data ||= { items: [] }; // Default structure for your database
+  db.data = db.data || { items: [] }; // Default structure for your database
   await db.write();
 }
 
